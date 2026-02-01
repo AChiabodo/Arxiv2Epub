@@ -1,0 +1,118 @@
+# ArXiv to EPUB Converter - .gitignore
+
+# EPUB e file generati
+*.epub
+*.mobi
+*.azw3
+*.pdf
+
+# File HTML scaricati per test
+*.html
+*.htm
+!Can-LLMs-Clean-Up-Your-Mess*.htm
+
+# Immagini scaricate
+images/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.webp
+
+# File temporanei di conversione
+temp/
+tmp/
+output/
+downloads/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# IDE e Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.code-workspace
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Documentazione generata
+docs/_build/
+site/
+
+# Log files
+*.log
+*.out
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# OS specific
+Thumbs.db
+.DS_Store
+.Spotlight-V100
+.Trashes
+
+# epubcheck
+epubcheck-*.jar
+epubcheck/
+
+# Test output
+test_output/
+test_*.epub
+sample_*.epub
+
+old/
