@@ -1,12 +1,12 @@
 # ArXiv HTML to EPUB Converter
 
-Uno script Python completo per scaricare paper scientifici da arXiv in formato HTML e convertirli in file EPUB perfettamente formattati e validati. Lo script gestisce automaticamente il download delle immagini, la pulizia del contenuto, l'estrazione dei metadati e la generazione di un ebook pronto per la lettura su qualsiasi dispositivo.
+Arxiv2Epub è un programma Python completo per scaricare paper scientifici da arXiv in formato HTML e convertirli in file EPUB perfettamente formattati e validati. Lo script gestisce automaticamente il download delle immagini, la pulizia del contenuto, l'estrazione dei metadati e la generazione di un ebook pronto per la lettura su qualsiasi dispositivo.
 
 ## Installazione
 
 ### Prerequisiti
 
-Python 3.7 o superiore.
+Python 3.10 o superiore.
 
 ### Setup
 
@@ -29,7 +29,7 @@ Le dipendenze includono:
 La forma più semplice di utilizzo richiede solo l'URL del paper in formato HTML:
 
 ```bash
-python arxiv_to_epub.py "https://ar5iv.labs.arxiv.org/html/2412.20331"
+python arxiv_to_epub.py "https://arxiv.org/html/2412.20331"
 ```
 
 Lo script scarica il paper, lo processa e crea un file EPUB con un nome generato automaticamente dal titolo del documento.
@@ -39,7 +39,7 @@ Lo script scarica il paper, lo processa e crea un file EPUB con un nome generato
 Se preferisci scegliere il nome del file di output:
 
 ```bash
-python arxiv_to_epub.py "https://ar5iv.labs.arxiv.org/html/2412.20331" -o mio_paper.epub
+python arxiv_to_epub.py "https://arxiv.org/html/2412.20331" -o mio_paper.epub
 ```
 
 ### Conversione Silenziosa
