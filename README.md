@@ -1,6 +1,6 @@
 # ArXiv HTML to EPUB Converter
 
-Arxiv2Epub è un programma Python completo per scaricare paper scientifici da arXiv in formato HTML e convertirli in file EPUB perfettamente formattati e validati. Lo script gestisce automaticamente il download delle immagini, la pulizia del contenuto, l'estrazione dei metadati e la generazione di un ebook pronto per la lettura su qualsiasi dispositivo.
+Arxiv2Epub è un programma Python per scaricare paper scientifici da arXiv in formato HTML e convertirli in file EPUB perfettamente formattati e leggibili. Lo script gestisce automaticamente il download delle immagini, la pulizia del contenuto, l'estrazione dei metadati e la generazione di un ebook pronto per la lettura su qualsiasi dispositivo.
 
 ## Installazione
 
@@ -86,7 +86,7 @@ Il valore predefinito è 800 pixel. Impostare un valore più alto mantiene immag
 
 ### Limitazione degli Autori
 
-Paper scientifici possono avere decine o centinaia di autori. Per evitare metadata eccessivamente lunghi:
+Paper scientifici possono avere decine di autori. Per evitare metadata eccessivamente lunghi:
 
 ```bash
 python arxiv_to_epub.py "URL" --max-authors 3
@@ -119,66 +119,6 @@ python arxiv_to_epub.py "URL" \
   --quiet
 ```
 
-## Caratteristiche Principali
-
-### Pulizia Intelligente del Contenuto
-
-Rimuove automaticamente tutti gli elementi non pertinenti al contenuto del paper:
-- Barre di navigazione e menu
-- Header e footer delle pagine
-- Script e stili inline
-- Elementi pubblicitari
-- Controlli dell'interfaccia web
-- Social sharing buttons
-
-Il risultato è un documento pulito che contiene solo il paper scientifico.
-
-### Gestione Completa delle Immagini
-
-Per evitare di lasciare riferimenti esterni che non permetterebbero la visualizzazione delle immagini:
-- Scarica ogni immagine presente nel paper
-- La include direttamente nel file EPUB
-- Converte URL relativi in riferimenti locali
-- Gestisce correttamente diversi formati (PNG, JPEG, GIF, SVG, WebP)
-
-Il file EPUB risultante funziona completamente offline, senza dipendere dalla disponibilità del server arXiv.
-
-### Estrazione Automatica dei Metadati
-
-Identifica e estrae automaticamente:
-- Il titolo del paper
-- Gli autori (con pulizia dei nomi da simboli o note)
-- Data di creazione del file EPUB
-
-I metadati vengono inclusi correttamente nel file EPUB per una gestione ottimale nelle librerie digitali (testato con Calibre).
-
-### Supporto Formule Matematiche
-
-Le formule matematiche in formato MathML vengono:
-- Riconosciute automaticamente
-- Processate per garantire namespace corretti
-- Dichiarate nel manifest EPUB per compatibilità
-- Pulite da attributi non standard
-
-Questo garantisce che le formule vengano visualizzate correttamente nei reader che supportano MathML.
-
-### Formattazione Ottimizzata per la Lettura
-
-Il file EPUB include stili CSS professionali che ottimizzano:
-- Leggibilità del testo (font Georgia, interlinea 1.6)
-- Formattazione delle tabelle scientifiche
-- Visualizzazione di codice e blocchi preformattati
-- Layout responsive per diversi dispositivi
-- Gerarchia visiva dei titoli
-
-### Validazione EPUB Completa
-
-I file generati passano la validazione epubcheck senza errori o warning. Questo garantisce:
-- Compatibilità con tutti i lettori EPUB standard
-- Nessun problema durante l'import nelle librerie
-- Rispetto delle specifiche EPUB 3.2
-- Funzionamento affidabile su tutti i dispositivi
-
 ## Flusso di Lavoro Tipico
 
 ### Conversione di un Singolo Paper
@@ -209,19 +149,6 @@ python arxiv_to_epub.py "URL" \
 ```
 
 Questo crea un file più leggero, perfetto per una prima passata sul contenuto.
-
-### Conversione Alta Qualità per Archiviazione
-
-Per mantenere la massima qualità per referenza futura:
-
-```bash
-python arxiv_to_epub.py "URL" \
-  --max-image-width 1600 \
-  --timeout 60 \
-  -o archivio.epub
-```
-
-Questo preserva immagini ad alta risoluzione e gestisce meglio download lenti.
 
 ### Batch Processing
 
@@ -264,16 +191,6 @@ Questo è particolarmente utile per risolvere problemi legati a:
 - Paper con molte immagini di grandi dimensioni
 - Connessioni internet lente o instabili
 - Server arXiv sotto carico
-
-### Immagini Mancanti nel File Finale
-
-Se alcune immagini non appaiono nel file EPUB:
-- Verifica i messaggi di warning durante la conversione
-- Le immagini non scaricabili vengono automaticamente rimosse
-- Controlla che il server arXiv sia accessibile
-- Alcune immagini potrebbero richiedere autenticazione
-
-Il processo di creazione epub tenta sempre di scaricare le immagini ma procede anche se alcune non sono disponibili.
 
 ### Contenuto Incompleto
 
@@ -337,24 +254,12 @@ Oppure vai su https://draft2digital.com/book/epubcheck/upload e carica l'epub pe
 
 ## Compatibilità Lettori EPUB
 
-### Lettori Testati e Compatibili
-
 - **Calibre** (Windows, macOS, Linux): Compatibilità completa, eccellente supporto MathML
 - **Apple Books** (iOS, macOS): Compatibilità completa, supporto MathML nativo
 - **Google Play Books** (Android, Web): Compatibilità completa, supporto base MathML
 - **Adobe Digital Editions**: Compatibilità completa
 - **Thorium Reader** (Windows, macOS, Linux): Compatibilità completa, ottimo per accessibilità
 - **FBReader** (Multi-piattaforma): Compatibilità buona, supporto limitato MathML
-
-### Conversione per Kindle
-
-I file EPUB possono essere convertiti per Kindle usando Calibre:
-
-```bash
-ebook-convert paper.epub paper.mobi
-```
-
-Nota: Amazon Kindle ha supporto limitato per formule matematiche complesse.
 
 ## Struttura del File EPUB Generato
 
@@ -385,27 +290,6 @@ Lo script è ottimizzato per paper arXiv convertiti in HTML dal servizio ar5iv:
 - arxiv.org/html fornisce versioni HTML dei paper arXiv
 - Il formato HTML permette estrazione più accurata del contenuto
 - Le immagini in formato PDF vengono automaticamente convertite
-
-### Gestione della Memoria
-
-Durante la conversione, lo script:
-- Mantiene il contenuto HTML in memoria
-- Scarica le immagini progressivamente
-- Libera memoria dopo ogni immagine processata
-
-Per paper con centinaia di immagini, potrebbero essere necessari 200-500 MB di RAM.
-
-### Sicurezza e Privacy
-
-Lo script:
-- Non invia dati a server terzi
-- Non traccia le conversioni
-- Non richiede autenticazione
-- Funziona completamente in locale dopo il download
-
-I file EPUB generati non contengono tracker o analytics.
-
-## Sviluppo e Contributi
 
 ### Struttura del Progetto
 
@@ -477,26 +361,6 @@ A: Dipende dalla licenza del paper originale su arXiv. Lo script non aggiunge re
 ## Licenza
 
 Questo script è fornito come strumento per uso personale ed educativo. Rispetta sempre le licenze e i termini d'uso dei paper che converti.
-
-## Changelog
-
-### Versione Corrente
-- Download e embedding automatico di tutte le immagini
-- Supporto completo per formule MathML
-- Validazione EPUB 3.2 completa
-- Opzioni avanzate per personalizzazione output
-- Pulizia intelligente del contenuto
-- Gestione robusta degli errori
-- Logging configurabile
-- Supporto timeout personalizzabile
-
-### Miglioramenti Futuri Possibili
-- Conversione automatica LaTeX → MathML
-- Resize intelligente delle immagini
-- Supporto per paper multi-capitolo
-- Cache locale per riconversioni
-- Interfaccia grafica opzionale
-- Estrazione automatica indice dei contenuti
 
 ## Riconoscimenti
 
