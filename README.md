@@ -1,6 +1,6 @@
 # ArXiv HTML to EPUB Converter
 
-Arxiv2Epub è un programma Python per scaricare paper scientifici da arXiv in formato HTML e convertirli in file EPUB perfettamente formattati e leggibili. Lo script gestisce automaticamente il download delle immagini, la pulizia del contenuto, l'estrazione dei metadati e la generazione di un ebook pronto per la lettura su qualsiasi dispositivo.
+Arxiv2Epub è uno strumento da riga di comando per scaricare paper scientifici da arXiv e convertirli in ebook EPUB. Il programma supporta ora il **download batch**, il **riconoscimento automatico degli ID arXiv** e la gestione mista di URL e identificativi.
 
 ## Installazione
 
@@ -10,353 +10,146 @@ Python 3.10 o superiore.
 
 ### Setup
 
-Clona o scarica il repository, quindi installa le dipendenze necessarie:
+Clona il repository e installa le dipendenze:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Le dipendenze includono:
-- `requests` per il download delle pagine web
-- `beautifulsoup4` per il parsing e la pulizia dell'HTML
-- `ebooklib` per la creazione dei file EPUB
-- `lxml` per un parsing veloce ed efficiente
+## Utilizzo
 
-## Utilizzo Base
+Il programma è flessibile e accetta sia URL completi che semplici ID dei paper.
 
-### Conversione Semplice
+### 1. Conversione Singola (ID o URL)
 
-La forma più semplice di utilizzo richiede solo l'URL del paper in formato HTML:
+Non è più necessario cercare l'URL HTML specifico, basta l'ID del paper:
 
 ```bash
+# Tramite ID (consigliato)
+python arxiv_to_epub.py 2412.20331
+
+# Tramite ID con versione
+python arxiv_to_epub.py 2412.20331v2
+
+# Tramite URL completo
 python arxiv_to_epub.py "https://arxiv.org/html/2412.20331"
 ```
 
-Lo script scarica il paper, lo processa e crea un file EPUB con un nome generato automaticamente dal titolo del documento.
+### 2. Conversione Multipla (Batch)
 
-### Specificare il Nome del File
-
-Se preferisci scegliere il nome del file di output:
+Puoi scaricare e convertire più paper in una sola volta. Il programma li processerà sequenzialmente:
 
 ```bash
-python arxiv_to_epub.py "https://arxiv.org/html/2412.20331" -o mio_paper.epub
+python arxiv_to_epub.py 2412.20331 2501.00006v1 2310.12345
 ```
 
-### Conversione Silenziosa
+### 3. Input Misti
 
-Per script automatici o batch processing, puoi disabilitare tutti i messaggi informativi:
+Puoi mescolare URL e ID nello stesso comando:
 
 ```bash
-python arxiv_to_epub.py "URL" --quiet
+python arxiv_to_epub.py 2412.20331 "https://arxiv.org/html/2501.00006" arXiv:2305.09876
 ```
 
-In modalità silenziosa vengono mostrati solo gli errori critici.
+## Opzioni e Flag
 
-## Opzioni Avanzate
+### Output Personalizzato
 
-### Rimozione dell'Abstract
-
-Se stai convertendo paper molto lunghi o preferisci un documento più compatto, puoi rimuovere la sezione dell'abstract:
+Specifica il nome del file (funziona **solo** con un singolo input):
 
 ```bash
-python arxiv_to_epub.py "URL" --no-abstract
+python arxiv_to_epub.py 2412.20331 -o mio_paper.epub
 ```
 
-Questo rimuove automaticamente le sezioni identificate come abstract dal documento finale.
+*Nota: Se inserisci più paper, l'opzione `-o` verrà ignorata e i file verranno nominati automaticamente basandosi sul titolo.*
 
-### Rimozione delle Figure
-
-Per creare una versione solo testo del paper, utile per la lettura veloce o per ridurre la dimensione del file:
+### Personalizzazione Contenuto
 
 ```bash
-python arxiv_to_epub.py "URL" --remove-figures
+# Rimuovi l'abstract e le figure per un file più leggero
+python arxiv_to_epub.py 2412.20331 --no-abstract --remove-figures
+
+# Limita il numero di autori nei metadati (default: 4)
+python arxiv_to_epub.py 2412.20331 --max-authors 2
 ```
 
-Tutte le figure vengono rimosse, mantenendo solo il contenuto testuale.
-
-### Gestione delle Immagini
-
-Le immagini vengono automaticamente scaricate e incluse nel file EPUB. Puoi controllare la loro dimensione massima:
+### Gestione Immagini
 
 ```bash
-python arxiv_to_epub.py "URL" --max-image-width 1200
+# Imposta larghezza massima immagini (default: 800px)
+python arxiv_to_epub.py 2412.20331 --max-image-width 1200
 ```
 
-Il valore predefinito è 800 pixel. Impostare un valore più alto mantiene immagini di qualità superiore ma aumenta la dimensione del file. Un valore più basso riduce le dimensioni ma può compromettere la leggibilità di grafici dettagliati.
-
-### Limitazione degli Autori
-
-Paper scientifici possono avere decine di autori. Per evitare metadata eccessivamente lunghi:
+### Opzioni di Sistema
 
 ```bash
-python arxiv_to_epub.py "URL" --max-authors 3
+# Modalità silenziosa (mostra solo errori e riepilogo finale)
+python arxiv_to_epub.py 2412.20331 --quiet
+
+# Aumenta timeout per connessioni lente (default: 30s)
+python arxiv_to_epub.py 2412.20331 --timeout 60
+
+# Salta la validazione preventiva dell'URL (più veloce, meno sicuro)
+python arxiv_to_epub.py 2412.20331 --no-validate
 ```
 
-Il valore predefinito è 4. Solo i primi N autori vengono inclusi nei metadata del file EPUB.
+## Esempio di Workflow Completo
 
-### Timeout Personalizzato
-
-Se hai una connessione lenta o stai scaricando paper con molte immagini, puoi aumentare il timeout:
+Immagina di voler leggere tre paper nel weekend. Non serve creare script complessi:
 
 ```bash
-python arxiv_to_epub.py "URL" --timeout 60
-```
-
-Il valore predefinito è 30 secondi. Un timeout più lungo può essere necessario per paper di grandi dimensioni.
-
-### Combinazione di Opzioni
-
-Puoi combinare liberamente le opzioni per personalizzare la conversione:
-
-```bash
-python arxiv_to_epub.py "URL" \
-  -o scientific_paper.epub \
-  --no-abstract \
-  --remove-figures \
-  --max-authors 2 \
+python arxiv_to_epub.py \
+  2602.02639 \
+  2501.00006 \
+  https://arxiv.org/html/2412.20331 \
   --max-image-width 1000 \
-  --timeout 45 \
   --quiet
 ```
 
-## Flusso di Lavoro Tipico
+**Output:**
+Il programma scaricherà i tre documenti, mostrerà eventuali errori per i singoli file e stamperà un riepilogo finale:
 
-### Conversione di un Singolo Paper
-
-```bash
-# 1. Trova il paper su arXiv
-# 2. Seleziona "HTML (experimental)" e copia il link
-# 3. Esegui la conversione
-python arxiv_to_epub.py "https://arxiv.org/html/2512.24880v2" -o paper.epub
-
-# 4. Verifica il risultato
-ls -lh paper.epub
-
-# Output esempio:
-# -rw-r--r-- 1 user user 3.2M Feb  2 00:20 paper.epub
+```text
+Riepilogo:
+  Successi: 3
+  Fallimenti: 0
+  Totale: 3
 ```
 
-### Conversione per Lettura Veloce
+## Risoluzione Problemi Comuni
 
-Per una lettura rapida del contenuto principale senza distrazioni:
+* **Errore "Impossibile interpretare input":** Verifica che l'ID sia corretto (es. `2602.02639`) o che l'URL sia raggiungibile.
+* **Timeout:** Usa `--timeout 60` se scarichi paper con immagini molto pesanti o se arXiv risponde lentamente.
+* **Formule Matematiche:** Il supporto dipende dal lettore EPUB. Consigliati: **Calibre**, **Apple Books**, **Thorium Reader**.
 
-```bash
-python arxiv_to_epub.py "URL" \
-  --no-abstract \
-  --remove-figures \
-  --max-image-width 600 \
-  -o lettura_veloce.epub
-```
-
-Questo crea un file più leggero, perfetto per una prima passata sul contenuto.
-
-### Batch Processing
-
-Per convertire multipli paper in sequenza:
-
-```bash
-# Crea uno script batch
-cat > convert_papers.sh << 'EOF'
-#!/bin/bash
-while IFS= read -r url; do
-  python arxiv_to_epub.py "$url" --quiet
-done < paper_urls.txt
-EOF
-
-chmod +x convert_papers.sh
-
-# Crea la lista di URL
-cat > paper_urls.txt << 'EOF'
-https://arxiv.org/html/2412.20331
-https://arxiv.org/html/2401.12345
-https://arxiv.org/html/2403.67890
-EOF
-
-# Esegui la conversione
-./convert_papers.sh
-```
-
-## Risoluzione Problemi
-
-### Timeout Durante il Download
-
-Se la conversione si interrompe con un errore di timeout:
-
-```bash
-# Aumenta il timeout a 60 secondi
-python arxiv_to_epub.py "URL" --timeout 60
-```
-
-Questo è particolarmente utile per risolvere problemi legati a:
-- Paper con molte immagini di grandi dimensioni
-- Connessioni internet lente o instabili
-- Server arXiv sotto carico
-
-### Contenuto Incompleto
-
-Se il file EPUB non contiene tutto il paper:
-- Verifica di usare l'URL corretto (arxiv.org/html/, non arxiv.org)
-- Alcuni paper potrebbero non essere disponibili in formato HTML
-- Usa l'URL "html" e non "pdf"
-
-Formato URL corretto:
-```
-Corretto:   https://arxiv.org/html/2412.20331
-Sbagliato:  https://arxiv.org/abs/2412.20331
-Sbagliato:  https://arxiv.org/pdf/2412.20331.pdf
-```
-
-### Formule Matematiche Non Visualizzate
-
-Se le formule matematiche non vengono renderizzate:
-- Il problema potrebbe dipendere dal lettore EPUB utilizzato
-- Non tutti i lettori supportano MathML
-- Prova con Calibre (ottimo supporto MathML)
-- Apple Books su iOS/macOS supporta MathML
-- Alcuni lettori potrebbero mostrare il codice invece della formula
-
-### File EPUB Troppo Grande
-
-Se il file risultante è troppo grande:
-
-```bash
-# Riduci la dimensione delle immagini
-python arxiv_to_epub.py "URL" --max-image-width 600
-
-# O rimuovi completamente le figure
-python arxiv_to_epub.py "URL" --remove-figures
-```
-
-Dimensioni tipiche:
-- Solo testo: 50-200 KB
-- Con immagini 800px: 2-5 MB
-- Con immagini 1600px: 5-15 MB
-
-### Validazione del File Generato
-
-Per verificare che il file EPUB sia correttamente formato:
-
-```bash
-# Scarica epubcheck (una tantum)
-wget https://github.com/w3c/epubcheck/releases/download/v5.1.0/epubcheck-5.1.0.zip
-unzip epubcheck-5.1.0.zip
-
-# Valida il file
-java -jar epubcheck-5.1.0/epubcheck.jar tuo_file.epub
-
-# Output atteso:
-# Validating using EPUB version 3.2 rules.
-# No errors or warnings detected.
-# EPUBCheck completed
-```
-
-Oppure vai su https://draft2digital.com/book/epubcheck/upload e carica l'epub per un controllo approfondito
-
-## Compatibilità Lettori EPUB
-
-- **Calibre** (Windows, macOS, Linux): Compatibilità completa, eccellente supporto MathML
-- **Apple Books** (iOS, macOS): Compatibilità completa, supporto MathML nativo
-- **Google Play Books** (Android, Web): Compatibilità completa, supporto base MathML
-- **Adobe Digital Editions**: Compatibilità completa
-- **Thorium Reader** (Windows, macOS, Linux): Compatibilità completa, ottimo per accessibilità
-- **FBReader** (Multi-piattaforma): Compatibilità buona, supporto limitato MathML
-
-## Struttura del File EPUB Generato
-
-I file EPUB creati contengono:
-
-```
-paper.epub
-├── META-INF/
-│   └── container.xml           (Metadata container)
-├── OEBPS/
-│   ├── content.xhtml           (Contenuto principale del paper)
-│   ├── toc.ncx                 (Indice navigazione)
-│   ├── nav.xhtml               (Navigazione HTML5)
-│   ├── style/
-│   │   └── nav.css             (Stili CSS)
-│   └── images/
-│       ├── img_1_abc123.png    (Immagini scaricate)
-│       ├── img_2_def456.jpg
-│       └── ...
-└── mimetype                     (Identificatore EPUB)
-```
-
-## Note Tecniche
-
-### Formato URL Supportato
-
-Lo script è ottimizzato per paper arXiv convertiti in HTML dal servizio ar5iv:
-- arxiv.org/html fornisce versioni HTML dei paper arXiv
-- Il formato HTML permette estrazione più accurata del contenuto
-- Le immagini in formato PDF vengono automaticamente convertite
-
-### Struttura del Progetto
-
-```
-arxiv-to-epub/
-├── arxiv_to_epub.py              # Script principale
-├── requirements.txt              # Dipendenze Python
-├── README.md                     # Questa guida
-├── .gitignore                    # File da escludere da Git
-└── docs/                         # Documentazione tecnica
-    ├── IMPLEMENTATION_DOCS.md    # Dettagli implementazione
-    ├── VALIDATION_FIXES.md       # Correzioni validazione EPUB
-    ├── CODE_COMPARISON.md        # Evoluzione del codice
-    └── PROJECT_STRUCTURE.md      # Struttura progetto
-```
-
-### Testing Locale
-
-Per testare modifiche allo script:
-
-```bash
-# Crea una cartella per i test (già nel .gitignore)
-mkdir test_output
-
-# Testa con diversi paper
-python arxiv_to_epub.py "URL1" -o test_output/test1.epub
-python arxiv_to_epub.py "URL2" -o test_output/test2.epub --no-abstract
-python arxiv_to_epub.py "URL3" -o test_output/test3.epub --remove-figures
-
-# Valida i risultati
-for f in test_output/*.epub; do
-  echo "Validating $f"
-  java -jar epubcheck.jar "$f"
-done
-```
-
-### Report Bug e Suggerimenti
-
-Se incontri problemi o hai suggerimenti:
-1. Verifica che il problema non sia già documentato nella sezione Risoluzione Problemi
-2. Prova con l'ultima versione dello script
-3. Includi l'URL del paper che causa il problema
-4. Includi il messaggio di errore completo
-5. Specifica il sistema operativo e la versione Python
-
-## Domande Frequenti
+## Domande Frequenti (FAQ)
 
 **Q: Posso convertire paper da altri siti oltre ad arXiv?**
-A: Lo script è ottimizzato per arXiv tramite ar5iv. Per altri siti potrebbero essere necessarie modifiche alla logica di estrazione del contenuto.
+A: Per il momento no. Lo script è pensato esclusivamente per arXiv. Per altri siti potrebbero essere necessarie modifiche alla logica di estrazione del contenuto. Se riesci a farlo funzionare non esitare ad aprire una pull request
 
 **Q: Il file EPUB funzionerà offline?**
 A: Sì, completamente. Tutte le immagini vengono scaricate e incluse nel file.
 
 **Q: Quanto tempo richiede una conversione tipica?**
-A: Per un paper standard: 15-30 secondi. Paper con molte immagini possono richiedere 1-2 minuti.
-
-**Q: Posso automatizzare la conversione di molti paper?**
-A: Sì, vedi la sezione "Batch Processing" per esempi di script.
+A: Per un paper standard: 15 secondi. Paper con molte immagini, invece, possono richiedere 1-2 minuti.
 
 **Q: Le formule matematiche vengono preservate?**
-A: Sì, se il paper HTML originale usa MathML. Il supporto dipende dal lettore EPUB.
+A: Sì, se il paper HTML originale usa MathML dovrebbero rimanere perfettamente leggibili. Il supporto però dipende dal lettore EPUB utilizzato.
 
-**Q: Posso modificare gli stili CSS?**
-A: Sì, il CSS è incluso nello script e può essere personalizzato modificando la variabile `style` nel metodo `create_epub()`.
+## Nota Tecnica
 
-**Q: Il file EPUB può essere venduto o distribuito?**
-A: Dipende dalla licenza del paper originale su arXiv. Lo script non aggiunge restrizioni DRM.
+Il programma tenta automaticamente di convertire qualsiasi ID o URL nel formato HTML di arXiv (`/html/`).
+
+Se un paper non ha una versione HTML disponibile su arXiv, la conversione fallirà. Questo significa che solo alcuni paper (solitamente tutti quelli dal 2022 in poi) possono essere scaricati in formato epub.
+
+## Report Bug e Suggerimenti
+
+Se incontri problemi o hai suggerimenti:
+
+1. Verifica che il problema non sia già documentato nella sezione Risoluzione Problemi
+2. Includi l'URL del paper che causa il problema.
+3. Includi il messaggio di errore completo.
+4. Specifica il sistema operativo, la versione Python e qualsiasi altra informazione che reputi importante
 
 ## Licenza
 
@@ -365,9 +158,10 @@ Questo script è fornito come strumento per uso personale ed educativo. Rispetta
 ## Riconoscimenti
 
 Questo progetto utilizza:
-- Il servizio arXiv/html per versioni HTML dei paper arXiv
-- La libreria ebooklib per la generazione EPUB
-- BeautifulSoup per il parsing HTML
-- Requests per il download delle risorse
 
-Grazie alla comunità open source per gli strumenti che rendono possibile questo progetto.
+* Il servizio arXiv/html per versioni HTML dei paper arXiv
+* La libreria ebooklib per la generazione EPUB
+* BeautifulSoup per il parsing HTML
+* Requests per il download delle risorse
+
+Grazie alla comunità open source per gli strumenti che rendono possibile questo progetto!

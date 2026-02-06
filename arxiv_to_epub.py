@@ -36,6 +36,7 @@ class ArxivToEpub:
         'width', 'xmlns', 'class'
     }
 
+
     def __init__(self, url, config=None):
         self.url = url
         self.soup = None
@@ -44,6 +45,7 @@ class ArxivToEpub:
         self.images = {}
         self.config = config or self._default_config()
         self.has_mathml = False
+
 
     @staticmethod
     def _default_config():
@@ -56,9 +58,11 @@ class ArxivToEpub:
             'max_authors': 4
         }
 
+
     def log(self, message):
         if not self.config.get('quiet', False):
             print(message)
+
 
     def download_html(self):
         try:
@@ -74,6 +78,7 @@ class ArxivToEpub:
             print(f"Errore durante il download: {e}")
             return False
 
+
     def download_image(self, img_url):
         try:
             headers = {
@@ -85,6 +90,7 @@ class ArxivToEpub:
         except Exception as e:
             self.log(f"Warning: impossibile scaricare immagine {img_url}: {e}")
             return None
+
 
     def get_image_extension(self, img_url, content_type=None):
         if content_type:
@@ -99,6 +105,7 @@ class ArxivToEpub:
             return ext
 
         return '.png'
+
 
     def clean_html(self):
         if not self.soup:
@@ -134,6 +141,7 @@ class ArxivToEpub:
 
         return self.soup
 
+
     def _remove_abstract(self):
         abstract_selectors = [
             {'name': 'section', 'class_': re.compile('abstract', re.I)},
@@ -153,12 +161,14 @@ class ArxivToEpub:
             else:
                 heading.decompose()
 
+
     def _remove_figures(self):
         for figure in self.soup.find_all('figure'):
             figure.decompose()
 
         for element in self.soup.find_all(class_=re.compile('figure', re.I)):
             element.decompose()
+
 
     def _clean_mathml_attributes(self, math_elem):
         attrs_to_remove = []
@@ -178,6 +188,7 @@ class ArxivToEpub:
             for attr in child_attrs_to_remove:
                 del child[attr]
 
+
     def fix_math_elements(self, content):
         content = self.soup.find('body') if self.soup else content
         if not content:
@@ -193,10 +204,12 @@ class ArxivToEpub:
 
         return content
 
+
     def _clean_author_name(self, author):
         author = re.sub(r'[^\w\s\-.,]', '', author)
         author = re.sub(r'\s+', ' ', author)
         return author.strip()
+
 
     def extract_metadata(self):
         if not self.soup:
@@ -230,6 +243,7 @@ class ArxivToEpub:
                     cleaned = self._clean_author_name(author_text)
                     if cleaned and len(cleaned) < 100:
                         self.authors.append(cleaned)
+
 
     def process_images(self, main_content):
         if not main_content:
@@ -274,6 +288,7 @@ class ArxivToEpub:
 
         return main_content
 
+
     def extract_main_content(self):
         if not self.soup:
             return None
@@ -301,6 +316,7 @@ class ArxivToEpub:
         main_content = self.process_images(main_content)
 
         return str(main_content)
+
 
     def create_epub(self, output_filename=None):
         if not self.soup:
@@ -444,8 +460,9 @@ m|math {
                 self.log(f"  Contenuto MathML rilevato e dichiarato")
             return True
         except Exception as e:
-            print(f"Errore durante la creazione dell\'EPUB: {e}")
+            print(f"Errore durante la creazione dell'EPUB: {e}")
             return False
+
 
     @staticmethod
     def get_mime_type(filename):
@@ -461,22 +478,165 @@ m|math {
         return mime_types.get(ext, 'application/octet-stream')
 
 
+def extract_arxiv_id(input_str):
+    """
+    Estrae l'identificativo arXiv da vari formati di input.
+    Supporta: 2602.02639, 2602.02639v1, arXiv:2602.02639, arXiv:2602.02639v1
+    """
+    input_str = input_str.strip()
+    
+    patterns = [
+        r'(?:arXiv:)?(\d{4}\.\d{4,5}(?:v\d+)?)',
+        r'(?:arXiv:)?(\d{7}(?:v\d+)?)',
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, input_str)
+        if match:
+            return match.group(1)
+    
+    return None
+
+
+def is_valid_url(url_str):
+    """
+    Verifica se una stringa e un URL valido.
+    """
+    try:
+        result = urlparse(url_str)
+        return all([result.scheme in ('http', 'https'), result.netloc])
+    except:
+        return False
+
+
+def build_arxiv_html_url(arxiv_id):
+    """
+    Costruisce l'URL arXiv HTML da un identificativo.
+    """
+    return f"https://arxiv.org/html/{arxiv_id}"
+
+
+def validate_arxiv_url(url, timeout=10):
+    """
+    Valida che l'URL arXiv esista e sia accessibile tramite una richiesta HEAD.
+    """
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        response = requests.head(url, headers=headers, timeout=timeout, allow_redirects=True)
+        return response.status_code == 200
+    except:
+        return False
+
+
+def normalize_input_to_url(input_str, validate=True, quiet=False):
+    """
+    Normalizza l'input (URL o ID) in un URL valido per arXiv HTML.
+    Restituisce (url, success) dove success indica se la normalizzazione e riuscita.
+    """
+    input_str = input_str.strip()
+    
+    if is_valid_url(input_str):
+        if 'arxiv.org' in input_str.lower():
+            if '/html/' not in input_str:
+                arxiv_id = extract_arxiv_id(input_str)
+                if arxiv_id:
+                    url = build_arxiv_html_url(arxiv_id)
+                else:
+                    if not quiet:
+                        print(f"Warning: impossibile estrarre ID arXiv da URL: {input_str}")
+                    return input_str, False
+            else:
+                url = input_str
+            
+            if validate:
+                if not quiet:
+                    print(f"Validazione URL: {url}")
+                if validate_arxiv_url(url):
+                    return url, True
+                else:
+                    if not quiet:
+                        print(f"Warning: URL non valido o non accessibile: {url}")
+                    return url, False
+            return url, True
+        else:
+            if not quiet:
+                print(f"Warning: URL non appartiene ad arXiv: {input_str}")
+            return input_str, False
+    
+    arxiv_id = extract_arxiv_id(input_str)
+    if arxiv_id:
+        url = build_arxiv_html_url(arxiv_id)
+        if validate:
+            if not quiet:
+                print(f"Validazione URL costruito: {url}")
+            if validate_arxiv_url(url):
+                return url, True
+            else:
+                if not quiet:
+                    print(f"Warning: URL costruito non valido: {url}")
+                return url, False
+        return url, True
+    
+    if not quiet:
+        print(f"Errore: impossibile interpretare input: {input_str}")
+    return None, False
+
+
+def process_single_paper(input_str, config, output_filename=None, validate_url=True):
+    """
+    Processa un singolo paper dato un URL o un ID arXiv.
+    """
+    quiet = config.get('quiet', False)
+    
+    url, success = normalize_input_to_url(input_str, validate=validate_url, quiet=quiet)
+    
+    if not url or not success:
+        print(f"Errore: impossibile processare input: {input_str}")
+        return False
+    
+    if not quiet:
+        print(f"\nProcessing: {input_str}")
+        if input_str != url:
+            print(f"URL normalizzato: {url}")
+    
+    converter = ArxivToEpub(url, config)
+    
+    if not converter.download_html():
+        return False
+    
+    if not quiet:
+        print("Pulizia del contenuto HTML...")
+    converter.clean_html()
+    
+    if not quiet:
+        print("Creazione dell'EPUB...")
+    
+    return converter.create_epub(output_filename)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Scarica e converte paper arXiv HTML in formato EPUB',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Esempi:
-  %(prog)s https://ar5iv.labs.arxiv.org/html/2401.12345
-  %(prog)s https://ar5iv.labs.arxiv.org/html/2401.12345 -o paper.epub
-  %(prog)s https://ar5iv.labs.arxiv.org/html/2401.12345 --no-abstract --max-authors 3
-  %(prog)s https://ar5iv.labs.arxiv.org/html/2401.12345 --remove-figures --quiet
+  %(prog)s https://arxiv.org/html/2602.02639v1
+  %(prog)s 2602.02639
+  %(prog)s arXiv:2602.02639v1
+  %(prog)s 2602.02639 2501.00006v1 -o paper.epub
+  %(prog)s https://arxiv.org/html/2602.02639v1 arXiv:2501.00006 --no-abstract
+  %(prog)s 2602.02639 --remove-figures --quiet
+  %(prog)s 2602.02639 2501.00006 --no-validate
         """
     )
-    parser.add_argument('url', help='URL del paper arXiv in formato HTML')
-    parser.add_argument('-o', '--output', help='Nome del file EPUB di output', default=None)
+    parser.add_argument('inputs', nargs='+', 
+                       help='URL o ID arXiv del paper (supporta input multipli)')
+    parser.add_argument('-o', '--output', help='Nome del file EPUB di output (solo per input singolo)', 
+                       default=None)
     parser.add_argument('--no-abstract', action='store_true', 
-                       help="Rimuovi l\'abstract dal documento")
+                       help="Rimuovi l'abstract dal documento")
     parser.add_argument('--remove-figures', action='store_true', 
                        help='Rimuovi tutte le figure dal documento')
     parser.add_argument('--max-image-width', type=int, default=800,
@@ -487,6 +647,8 @@ Esempi:
                        help='Timeout per il download in secondi (default: 30)')
     parser.add_argument('--quiet', action='store_true',
                        help='Modalita silenziosa, mostra solo errori')
+    parser.add_argument('--no-validate', action='store_true',
+                       help='Salta la validazione degli URL costruiti')
 
     args = parser.parse_args()
 
@@ -499,26 +661,41 @@ Esempi:
         'max_authors': args.max_authors
     }
 
-    if not config['quiet']:
-        print(f"Download della pagina da: {args.url}")
-
-    converter = ArxivToEpub(args.url, config)
-
-    if not converter.download_html():
+    validate_url = not args.no_validate
+    
+    if args.output and len(args.inputs) > 1:
+        print("Warning: l'opzione -o/--output viene ignorata con input multipli")
+        args.output = None
+    
+    success_count = 0
+    failure_count = 0
+    
+    for idx, input_str in enumerate(args.inputs):
+        try:
+            output_file = args.output if len(args.inputs) == 1 else None
+            
+            if process_single_paper(input_str, config, output_file, validate_url):
+                success_count += 1
+            else:
+                failure_count += 1
+        except Exception as e:
+            print(f"Errore durante il processamento di '{input_str}': {e}")
+            failure_count += 1
+        
+        if not args.quiet and idx < len(args.inputs) - 1:
+            print("\n" + "="*60)
+    
+    if len(args.inputs) > 1 and not args.quiet:
+        print(f"\n\nRiepilogo:")
+        print(f"  Successi: {success_count}")
+        print(f"  Fallimenti: {failure_count}")
+        print(f"  Totale: {len(args.inputs)}")
+    
+    if failure_count > 0:
         sys.exit(1)
-
-    if not config['quiet']:
-        print("Pulizia del contenuto HTML...")
-    converter.clean_html()
-
-    if not config['quiet']:
-        print("Creazione dell\'EPUB...")
-
-    if converter.create_epub(args.output):
-        if not config['quiet']:
-            print("\n✓ Conversione completata con successo!")
     else:
-        sys.exit(1)
+        if not args.quiet:
+            print("\n✓ Conversione completata con successo!")
 
 
 if __name__ == "__main__":
